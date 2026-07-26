@@ -75,7 +75,7 @@ Layer	Technology
 
 Blockchain	Solidity, Foundry (Sepolia testnet)
 
-Frontend	Next.js 14 (App Router), React, TypeScript, Tailwind CSS
+Frontend	Next.js 14.2.35(App Router), React, TypeScript, Tailwind CSS
 
 Authentication	Privy (email, social, wallet)
 
