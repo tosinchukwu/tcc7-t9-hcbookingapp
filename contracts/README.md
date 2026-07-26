@@ -28,11 +28,11 @@ forge test
 
 Deploy to Sepolia Blockchain
 ```
-forge script script/DeployHealthConsultationBooking.s.sol \
+forge script script/DeployHealthConsultationBooking.s.sol:DeployHealthConsultationBooking \
   --rpc-url $SEPOLIA_RPC_URL \
   --private-key $PRIVATE_KEY \
   --broadcast \
-  --verify
+
 ```
   
 After deployment, copy the contract address and update NEXT_PUBLIC_CONTRACT_ADDRESS.

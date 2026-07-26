@@ -1,6 +1,6 @@
 # Compiler files
 cache/
-out/
+lib/
 
 # Ignores development broadcast logs
 !/broadcast
@@ -13,10 +13,5 @@ docs/
 # Dotenv file
 .env
 
-lib/
-/.github/workflows/
 
-broadcast/
-cache/
-out/
-lib/
+
