@@ -109,6 +109,16 @@ cd tcc7-t9-hcbookingapp
 
 <i> for contract deployment, check README file in contracts folder for guide </i>
 
+# Install necessary dependencies
+npm install
+
+# Set up environment variables
+
+```
+cp .env.example .env.local
+```
+
+Open .env.local and fill in the details
 
 🗄️ Database (PostgreSQL)
 Uses Prisma ORM. The schema is in prisma/schema.prisma.
@@ -116,14 +126,15 @@ Push the Prisma schema to your database:
 
 ```
 npx prisma generate
-npx prisma db push
-Run the development server:
+
 ```
 
-# Install necessary dependencies
-npm install
+```
+npx prisma db push
+```
 
-# Test the app onL Localhost
+# Test the app on Localhost
+
 ```
 npm run dev
 ```
@@ -146,8 +157,7 @@ Copy your App ID and set PRIVY_APP_ID in the .env.
 
 In Privy Dashboard Domains settings, add your Vercel domain (https://your-app.vercel.app) or localhost.
 
-Provider Setup
-The app/providers.tsx file sets up Privy with Wagmi.
+
 
 ⛽ Gas Sponsorship for Google Login (Testnet)
 To make onboarding even smoother, gas fees are sponsored for users who log in with Google on the Sepolia testnet. This means:
@@ -188,7 +198,7 @@ Privy Domains: Add your Vercel domain to Allowed Origins in the Privy dashboard.
 RPC Connection Issues
 If you see 404 Not Found or connection errors, update NEXT_PUBLIC_RPC_URL to a working endpoint:
 
-https://sepolia.gateway.tenderly.co ✅ (recommended)
+https://sepolia.gateway.tenderly.co
 
 Database Connection
 Use the pooled connection string from Neon (contains -pooler).
@@ -207,14 +217,11 @@ Check that the doctor's id (UUID) is correctly passed from the doctor list.
 
 Refresh the appointment form after the doctor creates slots.
 
-BigInt Serialization Error
-If you see Do not know how to serialize a BigInt, the API responses have been fixed to convert BigInt to string. Ensure app/api/appointments/route.ts uses the serializeBigInt helper.
-
 Admin Dashboard Access
 Ensure NEXT_PUBLIC_ADMIN_WALLET is set to your wallet address (or add your wallet via the admin settings).
 
 Connect with the same wallet to access /admin.
 
 🤝 Contributing
-This project is developed by a team of 4. Please follow the standard Git flow:
+This project is developed by a team of 4 memeber as a capstone project.
 
