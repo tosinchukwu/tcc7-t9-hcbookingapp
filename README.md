@@ -75,11 +75,11 @@ Layer	Technology
 
 Blockchain	Solidity, Foundry (Sepolia testnet)
 
-Frontend	Next.js 14.2.35(App Router), React, TypeScript, Tailwind CSS
+Frontend	Next.js
 
-Authentication	Privy (email, social, wallet)
+Authentication	Privy (email, wallet)
 
-Web3	Wagmi v2, Viem, @privy-io/wagmi
+Web3	Viem, @privy-io/wagmi
 
 Database	PostgreSQL (Neon) with Prisma ORM
 
@@ -121,7 +121,6 @@ cp .env.example .env.local
 Open .env.local and fill in the details
 
 🗄️ Database (PostgreSQL)
-Uses Prisma ORM. The schema is in prisma/schema.prisma.
 Push the Prisma schema to your database:
 
 ```
@@ -140,15 +139,6 @@ npm run dev
 ```
 Open http://localhost:3000 in your browser.
 
-🔐 Authentication with Privy
-We use Privy to handle authentication (email, social, or wallet login). This replaces WalletConnect and provides a smooth onboarding experience.
-
-Supported Login Methods
-Email
-
-Google
-
-External wallet (MetaMask, Rabby, Coinbase Wallet, etc.)
 
 Privy Configuration
 Create an app at Privy Console.
@@ -175,12 +165,6 @@ in the .env
 The admin dashboard provides a secure interface for managing the platform.
 
 The environment variable NEXT_PUBLIC_ADMIN_WALLET is used as a fallback if no admin wallets are set.
-
-
-🏃 Running Locally
-bash
-npm run dev
-Open http://localhost:3000.
 
 
 🧪 Troubleshooting
