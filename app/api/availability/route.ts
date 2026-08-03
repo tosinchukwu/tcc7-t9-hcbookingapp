@@ -38,13 +38,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid doctor" }, { status: 400 });
     }
 
-    // 3. Prevent past dates
+    // 3. Prevent past dates (normalize to UTC midnight for comparison)
     const slotDate = new Date(date);
+    slotDate.setUTCHours(0, 0, 0, 0);
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    slotDate.setHours(0, 0, 0, 0);
+    today.setUTCHours(0, 0, 0, 0);
 
-    if (slotDate < today) {
+    if (slotDate.getTime() < today.getTime()) {
       return NextResponse.json(
         { error: "Cannot create a slot in the past" },
         { status: 400 }
@@ -57,7 +57,6 @@ export async function POST(request: Request) {
       const now = new Date();
       const currentMinutes = now.getHours() * 60 + now.getMinutes();
       const startMinutesTotal = startHours * 60 + startMinutes;
-      // Allow a 5‑minute grace period
       if (startMinutesTotal < currentMinutes - 5) {
         return NextResponse.json(
           { error: "Start time has already passed" },
@@ -66,32 +65,17 @@ export async function POST(request: Request) {
       }
     }
 
-    // 5. Prevent overlapping slots for the same doctor on the same day
+    // 5. Normalize the date again (reuse slotDate)
+    const normalizedDate = slotDate; // already normalized
+
+    // 6. Check for overlapping slots using the standard interval condition
     const existingSlot = await prisma.availability.findFirst({
       where: {
         doctorId,
-        date: new Date(date),
-        OR: [
-          // New slot overlaps with existing slot start or end
-          {
-            AND: [
-              { startTime: { lte: startTime } },
-              { endTime: { gt: startTime } },
-            ],
-          },
-          {
-            AND: [
-              { startTime: { lt: endTime } },
-              { endTime: { gte: endTime } },
-            ],
-          },
-          // New slot completely contains existing slot
-          {
-            AND: [
-              { startTime: { gte: startTime } },
-              { endTime: { lte: endTime } },
-            ],
-          },
+        date: normalizedDate,
+        AND: [
+          { startTime: { lt: endTime } }, // existing.startTime < new.endTime
+          { endTime: { gt: startTime } }, // existing.endTime > new.startTime
         ],
       },
     });
@@ -103,11 +87,11 @@ export async function POST(request: Request) {
       );
     }
 
-    // 6. Create the slot
+    // 7. Create the slot (use normalizedDate to avoid timezone issues)
     const slot = await prisma.availability.create({
       data: {
         doctorId,
-        date: new Date(date),
+        date: normalizedDate,
         startTime,
         endTime,
         isBooked: false,
