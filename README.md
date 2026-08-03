@@ -1,4 +1,3 @@
-markdown
 # <img src="public/logo.png" alt="logo" width="50"> MEDCRUSH Blockchain Hospital – Health Consultation Booking App
 
 A decentralized health consultation booking platform that stores **sensitive data off‑chain** (in a PostgreSQL database) while using a lightweight Ethereum smart contract for appointment confirmation and completion.
