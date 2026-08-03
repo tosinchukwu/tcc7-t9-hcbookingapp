@@ -207,5 +207,5 @@ Ensure NEXT_PUBLIC_ADMIN_WALLET is set to your wallet address (or add your walle
 Connect with the same wallet to access /admin.
 
 🤝 Contributing
-This project is developed by a team of 4 memeber as a capstone project.
+This project is developed by a team of 4 members as a capstone project on Web3/Blockchain and Development at Techcrush Cohort 7, 2026.
 
