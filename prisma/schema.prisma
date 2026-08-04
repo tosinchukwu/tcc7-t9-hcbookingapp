@@ -1,12 +1,5 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client"
-  output   = "../lib/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -14,47 +7,103 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id     String @id @default(uuid())
-  name   String
-  email  String @unique
-  wallet String?
-  role   Role @default(USER)
-  createdAt DateTime @default(now())
-  reviews Review[]
-  payments Payment[]
-  attendance Attendance[]
-}
-
-model Payment {
-  id       String @id @default(uuid())
-  userId   String
-  amount   Float
-  reference String
-  hashProof String?
-  createdAt DateTime @default(now())
-  user     User  @relation(fields: [userId], references: [id])
-}
-
-model Review {
-  id     String @id @default(uuid())
-  content String
-  rating  Int
-  hashProof String?
-  userId   String
-  createdAt DateTime @default(now())
-  user    User  @relation(fields: [userId], references: [id])
-}
-
-model Attendance {
-  id          String  @id @default(uuid())
-  userId      String
-  date        DateTime
-  hashProof   String?
-  user      User @relation(fields: [userId], references: [id])
-}
-
 enum Role {
   ADMIN
-  USER
+  PATIENT
+  DOCTOR
+}
+
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String?  @unique
+  wallet    String   @unique
+  role      Role     @default(PATIENT)
+  createdAt DateTime @default(now())
+
+  specialty       String?
+  hospital        String?
+  location        String?
+  bio             String?
+  rating          Float?    @default(0)
+  yearsExperience Int?
+  isActive        Boolean   @default(true)
+  autoConfirm     Boolean   @default(false)
+
+  patientAppointments Appointment[] @relation("PatientAppointments")
+  doctorAppointments  Appointment[] @relation("DoctorAppointments")
+  availability        Availability[]
+}
+
+model Availability {
+  id          String   @id @default(uuid())
+  doctorId    String
+  doctor      User     @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  date        DateTime
+  startTime   String
+  endTime     String
+  isBooked    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  appointment Appointment?
+
+  @@index([doctorId, date])
+}
+
+model Appointment {
+  id                   String   @id @default(uuid())
+  chainAppointmentId   BigInt   @unique
+  patientId            String
+  doctorId             String
+  date                 DateTime
+  description          String
+  doctorComment        String?  // 👈 New field for doctor's notes
+  status               AppointmentStatus @default(PENDING)
+  createdAt            DateTime @default(now())
+  availabilityId       String?  @unique
+  availability         Availability? @relation(fields: [availabilityId], references: [id])
+
+  // ✅ NEW FIELDS - Add these
+  txHash               String?  @unique
+  blockNumber          Int?
+  isConfirmed          Boolean  @default(false)
+  isCompleted          Boolean  @default(false)
+
+  patient User @relation("PatientAppointments", fields: [patientId], references: [id])
+  doctor  User @relation("DoctorAppointments",  fields: [doctorId],  references: [id])
+
+  @@index([patientId])
+  @@index([doctorId])
+  @@index([status])
+}
+
+model Tip {
+  id        String   @id @default(uuid())
+  title     String
+  content   String
+  category  String
+  createdAt DateTime @default(now())
+}
+
+model HospitalSettings {
+  id          String   @id @default(uuid())
+  name        String   @default("My Hospital")
+  email       String?
+  phone       String?
+  address     String?
+  website     String?
+  twitter     String?
+  linkedin    String?
+  facebook    String?
+  instagram   String?
+  adminWallets String[] @default([])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

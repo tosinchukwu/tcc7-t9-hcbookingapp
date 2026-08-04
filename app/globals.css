@@ -2,19 +2,41 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* ============================================
+   CLEAN SLATE THEME – Light & Dark via next-themes
+   ============================================ */
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  body {
+    @apply bg-gray-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 transition-colors duration-300 min-h-screen;
+    font-family: 'Inter', system-ui, sans-serif;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
+@layer components {
+  /* Primary button – uses blue accent */
+  .btn-primary {
+    @apply bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-all hover:shadow-lg hover:scale-105 active:scale-95 dark:bg-blue-500 dark:hover:bg-blue-600;
+  }
+  .btn-secondary {
+    @apply bg-gray-200 hover:bg-gray-300 text-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 px-6 py-2 rounded-lg transition-all hover:shadow-lg hover:scale-105 active:scale-95;
+  }
+  .btn-danger {
+    @apply bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-all hover:shadow-lg hover:scale-105 active:scale-95 dark:bg-red-500 dark:hover:bg-red-600;
+  }
+  .card {
+    @apply bg-white dark:bg-slate-800 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 p-6 border border-gray-200 dark:border-slate-700;
+  }
+  .card-hover {
+    @apply hover:-translate-y-1 hover:shadow-xl transition-all duration-300;
+  }
+  .section-title {
+    @apply text-2xl font-bold text-slate-900 dark:text-slate-100 mb-4;
+  }
+  .section-subtitle {
+    @apply text-sm text-slate-500 dark:text-slate-400;
+  }
+  .input-field {
+    @apply w-full px-4 py-2 border rounded-lg bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 outline-none transition;
+  }
 }
