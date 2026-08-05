@@ -49,12 +49,10 @@ This application allows patients to book consultations with doctors.
 - **Responsive UI** – works on both desktop and mobile (Tailwind CSS).
 - **Dark / Light Theme** – toggle between themes.
 - **Privy Authentication** – email, social, or wallet login.
-- **ENS Name Resolution** – display ENS names when available.
 - **Smart Contract** – deployed on Sepolia testnet, verified on Sourcify.
 - **Real‑Time Updates** – appointments refresh after status changes.
 - **Health Tips** – daily health tips displayed on the homepage.
-- **Delete Appointments** – doctors can delete appointments (with confirmation).
-- **Clear All** – doctors can clear all appointments (with confirmation).
+- **Delete Appointments** – doctors can delete completed appointments (with confirmation).
 - **Doctor Comments** – doctors can add a comment when confirming, completing, or rejecting an appointment.
 - **Transaction History** – the latest transaction hash and block number are stored for each appointment.
 
