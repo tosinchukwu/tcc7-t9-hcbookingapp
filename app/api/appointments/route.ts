@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = 'force-dynamic';
+
 function serializeBigInt(obj: any): any {
   if (obj === null || obj === undefined) return obj;
   if (typeof obj === 'bigint') return obj.toString();

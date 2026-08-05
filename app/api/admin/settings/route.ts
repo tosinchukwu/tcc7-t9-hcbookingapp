@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { isAdminWallet } from "@/lib/admin";
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     let settings = await prisma.hospitalSettings.findFirst();
