@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useWaitForTransactionReceipt } from "wagmi";
 import AppointmentCard from "./AppointmentCard";
 import { useConfirmAppointment, useCompleteAppointment } from "@/hooks/useAppointments";
 import DoctorCommentModal from "./DoctorCommentModal";
@@ -44,8 +45,12 @@ export default function AppointmentList({
   const { confirm: confirmAppointment, data: confirmData, isPending: isConfirmPending } = useConfirmAppointment();
   const { complete: completeAppointment, data: completeData, isPending: isCompletePending } = useCompleteAppointment();
 
-  // Combined pending state (for disabling buttons)
-  const isTransactionPending = isConfirmPending || isCompletePending;
+  // For fallback: watch the transaction hash from the hook data
+  const [txHash, setTxHash] = useState<`0x${string}` | undefined>(undefined);
+  const { isLoading: isWaiting, isSuccess, data: receipt } = useWaitForTransactionReceipt({ hash: txHash });
+
+  // Combined pending state
+  const isTransactionPending = isConfirmPending || isCompletePending || isWaiting;
   const combinedPending = isPending || isTransactionPending || !!pendingUpdate;
 
   // Fetch appointments
@@ -73,12 +78,11 @@ export default function AppointmentList({
       });
   };
 
-  // Initial fetch and refresh triggers
   useEffect(() => {
     fetchAppointments();
   }, [patientId, patientWallet, doctorId, refresh, refreshTrigger]);
 
-  // Handle successful transaction (from confirmData or completeData)
+  // ---- Handle successful transaction (called by both receipt and fallback) ----
   const handleTransactionSuccess = (receipt: any, pending: { id: string; status: string; comment: string }) => {
     const { id: uuid, status, comment } = pending;
     const txHash = receipt.transactionHash;
@@ -97,8 +101,10 @@ export default function AppointmentList({
     })
       .then((res) => {
         if (!res.ok) throw new Error("Failed to update appointment status");
-        console.log(`✅ Appointment ${uuid} updated to ${status} with txHash ${txHash}`);
-        // Refresh the list
+        return res.json();
+      })
+      .then((data) => {
+        console.log(`✅ Appointment ${uuid} updated to ${status}`, data);
         fetchAppointments();
         setRefreshTrigger((prev) => prev + 1);
         if (onUpdate) onUpdate();
@@ -109,50 +115,75 @@ export default function AppointmentList({
       })
       .finally(() => {
         setPendingUpdate(null);
+        setTxHash(undefined);
       });
   };
 
-  // Watch for confirmData
+  // ---- Primary: use receipt from the hook ----
   useEffect(() => {
-    if (confirmData && pendingUpdate) {
-      if (confirmData.receipt) {
-        handleTransactionSuccess(confirmData.receipt, pendingUpdate);
-      } else {
-        console.warn("⚠️ confirmData has no receipt, using fallback");
-        // Fallback: if receipt is missing, treat as success but we need to extract info?
-        // In our hook, receipt is always present, so this is unlikely.
-        setPendingUpdate(null);
-      }
+    console.log("🔍 confirmData changed:", confirmData);
+    if (confirmData && pendingUpdate && confirmData.receipt) {
+      handleTransactionSuccess(confirmData.receipt, pendingUpdate);
     }
   }, [confirmData]);
 
-  // Watch for completeData
   useEffect(() => {
-    if (completeData && pendingUpdate) {
-      if (completeData.receipt) {
-        handleTransactionSuccess(completeData.receipt, pendingUpdate);
-      } else {
-        console.warn("⚠️ completeData has no receipt, using fallback");
-        setPendingUpdate(null);
-      }
+    console.log("🔍 completeData changed:", completeData);
+    if (completeData && pendingUpdate && completeData.receipt) {
+      handleTransactionSuccess(completeData.receipt, pendingUpdate);
     }
   }, [completeData]);
 
-  // Fallback timeout: if the transaction is pending and we don't get a receipt after 60 seconds, refresh anyway.
+  // ---- Fallback: use the transaction hash with wagmi's useWaitForTransactionReceipt ----
+  useEffect(() => {
+    // Set txHash when we get a hash from the hook data (but no receipt yet)
+    if (confirmData && confirmData.hash && !pendingUpdate) {
+      // If we have a hash but no pendingUpdate, we might have missed it? Not likely.
+    }
+    if (completeData && completeData.hash && !pendingUpdate) {
+      // same
+    }
+  }, [confirmData, completeData]);
+
+  // When the hook provides a hash but no receipt (shouldn't happen with our hook), we use the fallback
+  useEffect(() => {
+    if (confirmData && confirmData.hash && !confirmData.receipt && pendingUpdate) {
+      console.log("⏳ Fallback: using confirmData.hash for receipt watch");
+      setTxHash(confirmData.hash);
+    }
+  }, [confirmData]);
+
+  useEffect(() => {
+    if (completeData && completeData.hash && !completeData.receipt && pendingUpdate) {
+      console.log("⏳ Fallback: using completeData.hash for receipt watch");
+      setTxHash(completeData.hash);
+    }
+  }, [completeData]);
+
+  // Fallback: when the receipt arrives via wagmi
+  useEffect(() => {
+    if (isSuccess && pendingUpdate && receipt) {
+      console.log("✅ Fallback: receipt arrived via wagmi");
+      handleTransactionSuccess(receipt, pendingUpdate);
+    }
+  }, [isSuccess, receipt]);
+
+  // ---- Extra safety: fallback timeout (60s) ----
   useEffect(() => {
     if (pendingUpdate) {
       const timeout = setTimeout(() => {
-        console.log("⏳ Fallback refresh after 60 seconds – assuming transaction succeeded or timed out");
+        console.log("⏳ Fallback timeout – forcing refresh");
         fetchAppointments();
         setRefreshTrigger((prev) => prev + 1);
         if (onUpdate) onUpdate();
         setPendingUpdate(null);
-      }, 60000); // 60 seconds
+        setTxHash(undefined);
+      }, 60000);
       return () => clearTimeout(timeout);
     }
   }, [pendingUpdate]);
 
-  // Delete handler
+  // ---- Delete handler ----
   const handleDelete = async (id: string) => {
     try {
       const res = await fetch(`/api/appointments/${id}`, { method: "DELETE" });
@@ -165,13 +196,12 @@ export default function AppointmentList({
     }
   };
 
-  // Open modal for status update
+  // ---- Modal and status update ----
   const handleStatusUpdate = (id: string, status: string) => {
     setModalAction({ id, status });
     setModalOpen(true);
   };
 
-  // Confirm status update with comment
   const confirmStatusUpdate = (comment: string) => {
     if (!modalAction) return;
     const { id, status } = modalAction;
@@ -179,7 +209,6 @@ export default function AppointmentList({
     processStatusUpdate(id, status, comment);
   };
 
-  // Process the actual status update (called after modal)
   const processStatusUpdate = (id: string, status: string, comment: string) => {
     console.log("📤 processStatusUpdate called:", { id, status, comment });
 
@@ -200,7 +229,6 @@ export default function AppointmentList({
           return;
         }
 
-        // Store the pending update info (uuid, target status, and comment)
         setPendingUpdate({ id, status, comment });
 
         if (status === "CONFIRMED") {
@@ -212,7 +240,6 @@ export default function AppointmentList({
           completeAppointment(chainId);
           alert("⏳ Complete transaction sent. Please approve in your wallet.");
         } else if (status === "CANCELLED") {
-          // For cancellation, we update the DB directly (no contract call)
           setPendingUpdate(null);
           fetch(`/api/appointments/${id}`, {
             method: "PUT",
@@ -237,6 +264,7 @@ export default function AppointmentList({
       });
   };
 
+  // ---- Render ----
   if (loading) {
     return (
       <div className="grid gap-4">
@@ -267,7 +295,6 @@ export default function AppointmentList({
 
   return (
     <div className="space-y-6">
-      {/* Doctor Comment Modal */}
       <DoctorCommentModal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
