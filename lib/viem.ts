@@ -2,10 +2,12 @@
 import { createPublicClient, http } from "viem";
 import { sepolia } from "viem/chains";
 
-// Use the same RPC URL as your app. If you don't have one, use a public one or Alchemy/Infura.
-const rpcUrl = process.env.NEXT_PUBLIC_RPC_URL || "https://ethereum-sepolia.publicnode.com";
+// ✅ CENTRALIZED RPC CONFIG
+// This ensures ALL parts of the app use the SAME RPC endpoint
+// Fallback to Tenderly (free tier with good rate limits)
+export const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL || "https://sepolia.gateway.tenderly.co";
 
 export const publicClient = createPublicClient({
   chain: sepolia,
-  transport: http(rpcUrl),
+  transport: http(RPC_URL),
 });
