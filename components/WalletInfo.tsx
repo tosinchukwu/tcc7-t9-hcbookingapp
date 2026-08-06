@@ -4,6 +4,7 @@ import { useAccount } from "wagmi";
 import { useWallets, usePrivy } from "@privy-io/react-auth";
 import { createPublicClient, http, formatEther } from "viem";
 import { sepolia } from "viem/chains";
+import { RPC_URL } from "@/lib/viem";
 
 export default function WalletInfo() {
   const { address, isConnected } = useAccount();
@@ -23,7 +24,7 @@ export default function WalletInfo() {
       try {
         const publicClient = createPublicClient({
           chain: sepolia,
-          transport: http(),
+          transport: http(RPC_URL),
         });
         const balanceWei = await publicClient.getBalance({
           address: walletAddress as `0x${string}`,
