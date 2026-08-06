@@ -13,7 +13,7 @@ const queryClient = new QueryClient();
 export const wagmiConfig = createConfig({
   chains: [sepolia, localhost],
   transports: {
-    [sepolia.id]: http(process.env.NEXT_PUBLIC_RPC_URL || "https://sepolia.gateway.tenderly.co"),
+    [sepolia.id]: http(process.env.NEXT_PUBLIC_RPC_URL || "https://ethereum-sepolia.publicnode.com"),
     [localhost.id]: http("http://127.0.0.1:8545"),
   },
   connectors: [
